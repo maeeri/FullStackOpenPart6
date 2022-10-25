@@ -12,51 +12,14 @@ const anecdotesAtStart = [
 
 const getId = () => (100000 * Math.random()).toFixed(0)
 
-// const asObject = (anecdote) => {
-//   return {
-//     content: anecdote,
-//     id: getId(),
-//     votes: 0
-//   }
-// }
-
-// const initialState = anecdotesAtStart.map(asObject)
-
-// export const createAnecdote = (newAnecdote) => {
-//   return {
-//     type: 'NEW_ANECDOTE',
-//     data: {
-//       content: newAnecdote,
-//       id: getId(),
-//       votes: 0      
-//     }
-//   }
-// }
-
-// export const vote = (id) => {
-//   return {
-//     type: 'VOTE',
-//     data: { id }
-//   }
-// }
-
 const anecdoteSlice = createSlice({
   name: 'anecdotes',
   initialState: [],
   reducers: {
-    // createAnecdote(state, action) {
-    //   state.push(action.payload)
-    // },
     vote(state, action) {
-      const id = action.payload
-      const anecdoteToVote = state.find(n => n.id === id)
-      const changedAnecdote = { 
-        ...anecdoteToVote, 
-        votes: anecdoteToVote.votes + 1
-      }
-      
+      const obj = action.payload
       return state.map(anecdote =>
-        anecdote.id !== id ? anecdote : changedAnecdote 
+        anecdote.id !== obj.id ? anecdote : obj
       )     
     },
     setAnecdotes(state, action) {
@@ -67,25 +30,6 @@ const anecdoteSlice = createSlice({
     }
   },
 })
-
-// const anecdoteReducer = (state = initialState, action) => {
-//   console.log('state now: ', state)
-//   console.log('action', action)
-
-//   switch(action.type) {
-//     case 'VOTE':
-//       const id = action.data.id
-//       const anecdoteToVote = state.find(a => a.id === id)
-//       const votedAnecdote = { ...anecdoteToVote, votes: anecdoteToVote.votes + 1 }
-//       return state.map(anecdote => anecdote.id === id ? votedAnecdote : anecdote)
-
-//     case 'NEW_ANECDOTE':
-//       return state.concat(action.data)
-
-//     default:
-//       return state
-//   }
-// }
 
 export const { appendAnecdote, vote, setAnecdotes } = anecdoteSlice.actions
 
@@ -100,6 +44,17 @@ export const createAnecdote = content => {
   return async dispatch => {
     const newAnecdote = await anecdoteService.createNew(content)
     dispatch(appendAnecdote(newAnecdote))
+  }
+}
+
+export const voteAnecdote = obj => {
+  return async dispatch => {
+    const anecdoteToVote = (await anecdoteService.getAll()).find(a => a.id === obj.id)
+    const changedAnecdote = await anecdoteService.update({ 
+      ...anecdoteToVote, 
+      votes: anecdoteToVote.votes + 1
+    })
+    dispatch(vote(changedAnecdote))
   }
 }
 
